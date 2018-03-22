@@ -12,7 +12,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const defaultExpiry = 30 * time.Second
+var defaultExpiry = 30 * time.Second
+
+// SetDefaultExpiry update the default expiry for all cached parameters
+//
+// Note this will update expires value on the next refresh of entries.
+func SetDefaultExpiry(expires time.Duration) {
+	defaultExpiry = expires
+}
 
 // Entry an SSM entry in the cache
 type Entry struct {
