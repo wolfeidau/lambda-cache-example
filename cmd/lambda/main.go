@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/wolfeidau/lambda-cache-example/pkg/ssmcache"
@@ -11,38 +11,43 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-const (
-	defaultSSMKey = "/mwolfe/caching-example"
+const defaultSSMKey = "/mwolfe/caching-example"
+
+var (
+	errNameNotProvided  = errors.New("no name was provided in the HTTP body")
+	errConfigLoadFailed = errors.New("unable to load configuration")
+
+	cache = ssmcache.New(session.New())
 )
 
-type server struct {
-	cache ssmcache.Cache
-}
+// Handler is your Lambda function handler
+// It uses Amazon API Gateway request/responses provided by the aws-lambda-go/events package,
+// However you could use other event sources (S3, Kinesis etc), or JSON-decoded primitive types such as 'string'.
+func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-func newServer() *server {
-	sess := session.New()
+	// stdout and stderr are sent to AWS CloudWatch Logs
+	log.Printf("Processing Lambda request %s\n", request.RequestContext.RequestID)
 
-	ssmCache := ssmcache.New(sess)
-
-	return &server{
-		cache: ssmCache,
+	// If no name is provided in the HTTP request body, return an error
+	if len(request.Body) < 1 {
+		return events.APIGatewayProxyResponse{}, errNameNotProvided
 	}
-}
 
-func (cs *server) handler(request events.SNSEvent) error {
-
-	val, err := cs.cache.GetKey(defaultSSMKey)
+	val, err := cache.GetKey(defaultSSMKey)
+	// if we failed to load configuration return an error
 	if err != nil {
-		log.Fatalf("Error retrieving cached resource: %+v", err)
+		return events.APIGatewayProxyResponse{}, errConfigLoadFailed
 	}
 
-	log.Println("key:", defaultSSMKey, "value:", val)
+	log.Printf("key: %s value: %s", defaultSSMKey, val)
 
-	return nil
+	return events.APIGatewayProxyResponse{
+		Body:       "Hello " + request.Body,
+		StatusCode: 200,
+	}, nil
+
 }
 
 func main() {
-	log.Println("cold start at:", time.Now())
-	cs := newServer()
-	lambda.Start(cs.handler)
+	lambda.Start(Handler)
 }
