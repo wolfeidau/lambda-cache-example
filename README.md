@@ -1,6 +1,6 @@
 # lambda-cache-example
 
-This project provides an example golang based lambda function which caches a key from parameter store in a local variable and refreshes it every 30 seconds. This ensures that you only hit the parameter store api to refresh and not every time the lambda is triggered, therefore avoiding rate limiting your self.
+This project provides an example [golang](https://golang.org) based lambda function which caches a key from parameter store in a local variable and refreshes it every 30 seconds. This ensures that you only hit the [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) API to refresh and not every time the lambda is triggered, therefore avoiding rate limiting your self.
 
 # example 
 

@@ -3,3 +3,4 @@
 /vendor
 .envrc
 handler.zip
+coverage.txt

@@ -67,3 +67,8 @@ deploy:
 		--stack-name $(APPNAME)-$(ENV)-$(ENV_NO) \
 		--parameter-overrides EnvironmentName=$(ENV) EnvironmentNumber=$(ENV_NO)
 .PHONY: deploy
+
+mocks:
+	go get -u -v github.com/aws/aws-sdk-go/...
+	mockery -name SSMAPI -dir ../../aws/aws-sdk-go/service/ssm/ssmiface -recursive
+.PHONY: mocks
